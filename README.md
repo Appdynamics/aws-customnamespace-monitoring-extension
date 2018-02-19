@@ -122,6 +122,14 @@ To set an encrypted awsAccessKey and awsSecretKey in config.yaml, follow the ste
    	
 3. Set the decryptionKey field in config.yaml with the encryption key used, as well as the resulting encrypted awsAccessKey and awsSecretKey in their respective fields.
 
+###AWS Instance Profiles
+When running on an EC2 instance, you can use the IAM instance profile on the instance instead of storing credentials in
+your configuration file.
+
+To use instance profiles instead of keys in the `config.yaml`, follow all the installation steps but leave the
+`awsAccessKey` and `awsSecretKey` fields blank in the `config.yaml` or omit them. The extension will then get temporary
+credentials from using the instance profile each time metrics are sent to your AppDynamcis controller.
+
 ##Metrics
 Typical metric path: **Application Infrastructure Performance|\<Tier\>|Custom Metrics|Amazon Custom Namespace|\<Namespace\>|\<Account Name\>|\<Region\>** followed by the metrics defined by your custom namespace.
 
