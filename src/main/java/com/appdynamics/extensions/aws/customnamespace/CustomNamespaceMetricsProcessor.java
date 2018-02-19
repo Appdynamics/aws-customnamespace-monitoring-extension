@@ -41,7 +41,7 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
 		this.namespace = namespace;
 	}
 
-	public List<Metric> getMetrics(AmazonCloudWatch awsCloudWatch) {
+	public List<Metric> getMetrics(AmazonCloudWatch awsCloudWatch, String accountName) {
 		return MetricsProcessorHelper.getFilteredMetrics(awsCloudWatch, 
 				namespace, 
 				excludeMetricsPattern);
