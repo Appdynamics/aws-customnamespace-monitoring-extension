@@ -3,128 +3,162 @@
 ## Use Case
 Captures Custom Namespace statistics from Amazon CloudWatch and displays them in the AppDynamics Metric Browser.
 
-**Note : By default, the Machine agent can only send a fixed number of metrics to the controller. This extension potentially reports thousands of metrics, so to change this limit, please follow the instructions mentioned [here](https://docs.appdynamics.com/display/PRO40/Metrics+Limits).**
+## Prerequisites
+1. Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
+2. Please give the following permissions to the account being used to with the extension. **cloudwatch:ListMetrics cloudwatch:GetMetricStatistics**
 
 ## Installation
 
-1. Run 'mvn clean install' from aws-customnamespace-monitoring-extension
-2. Copy and unzip AWSCustomNamespaceMonitor-\<version\>.zip from 'target' directory into \<machine_agent_dir\>/monitors/
-3. Edit config.yaml file in AWSCustomNamespaceMonitor/conf and provide the required configuration (see Configuration section)
-4. Restart the Machine Agent.
+1. Run `mvn clean install` from aws-customnamespace-monitoring-extension
+2. Copy and unzip AWSCustomNamespaceMonitor-\<version\>.zip from 'target' directory into \<MachineAgent_Home\>/monitors/ directory. Do not place the extension in the `extensions` directory of your Machine Agent installation directory.
+3. Edit the config.yml file located at MachineAgent_Home/monitors/AWSCustomNamespaceMonitor and provide the required configuration (see Configuration section)
+4. The metricPrefix of the extension has to be configured as specified [here](https://community.appdynamics.com/t5/Knowledge-Base/How-do-I-troubleshoot-missing-custom-metrics-or-extensions/ta-p/28695#Configuring%20an%20Extension). Please make sure that the right metricPrefix is chosen based on your machine agent deployment, otherwise this could lead to metrics not being visible in the controller.
+5. Restart the Machine Agent.
 
 ## Configuration
+In order to use the extension, you need to update the config.yml file that is present in the extension folder. The following is an explanation of the configurable fields that are present in the config.yml file.
 
-### config.yaml
+1. If SIM is enabled, then use the following metricPrefix `metricPrefix: "Custom Metrics|AWS DynamoDB"` else configure the `COMPONENT_ID` under which the metrics need to be reported. This can be done by changing the value of <COMPONENT_ID> in `metricPrefix: "Server|Component:<COMPONENT_ID>|Custom Metrics|AWS DynamoDB|"`.
+   
+   For example,
+   
+   `metricPrefix: "Server|Component:100|Custom Metrics|Amazon Custom Namespace|"`
+   
+2. Provide accessKey(required) and secretKey(required) of AWS account(s), also provide displayAccountName(any name that represents your account) and regions(required). If you are running this extension inside an EC2 instance which has IAM profile configured then awsAccessKey and awsSecretKey can be kept empty, extension will use IAM profile to authenticate.
+  ``` 
+   accounts:
+     - awsAccessKey: "XXXXXXXX1"
+       awsSecretKey: "XXXXXXXXXX1"
+       displayAccountName: "TestAccount_1"
+       regions: ["us-east-1","us-west-1","us-west-2"]
+   
+     - awsAccessKey: "XXXXXXXX2"
+       awsSecretKey: "XXXXXXXXXX2"
+       displayAccountName: "TestAccount_2"
+       regions: ["eu-central-1","eu-west-1"]
+   ```
+   
+3. Please specify the AWS Namespace that you would like to monitor. Please note that only 1 AWS Namespace can be monitored using this extension. Inorder to monitor multiple Namespaces, please have multiple copies of this extension.
+   Example is `namespace: "AWS/DynamoDB"`
 
-**Note: Please avoid using tab (\t) when editing yaml files. You may want to validate the yaml file using a [yaml validator](http://yamllint.com/).**
+4. If you want to encrypt the "awsAccessKey" and "awsSecretKey" then follow the "Credentials Encryption" section and provide the encrypted values in "awsAccessKey" and "awsSecretKey". Configure "enableDecryption" of "credentialsDecryptionConfig" to true and provide the encryption key in "encryptionKey" For example,
+  ``` 
+   #Encryption key for Encrypted password.
+   credentialsDecryptionConfig:
+       enableDecryption: "true"
+       encryptionKey: "XXXXXXXX"
+   ```
+5. Configure proxy details if there is a proxy between MachineAgent and AWS.
+   ``` 
+    proxyConfig:
+        host:
+        port:
+        username:
+        password:
+    ```
+6. To report metrics from specific dimension values, configure the `dimesions` section. The dimensions varies with AWS Namespace. Please refer to AWS [doc](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Dimension) for details on dimensions.
+   Example below:
+   ```
+   dimensions:
+     - name: "TableName"
+       displayName: "Table Name"
+       values: ["ABC", "DEF"]
+     - name: "AvailabilityZone"
+       displayName: "Availability Zone"
+       values: []
+    ```
+   name is the dimension name and values are comma separated values of the dimension. displayName is the name with which it appears on the AppDynamics Metric Browser.
+   If these fields are left empty, none of your instances will be monitored. In order to monitor everything under a dimension, you can simply use ".*" to pull everything from your AWS Environment.
+   
+7. Configure the metrics section.
+   
+        For configuring the metrics, the following properties can be used:
+   
+        |     Property      |   Default value |         Possible values         |                                              Description                                                                                                |
+        | :---------------- | :-------------- | :------------------------------ | :------------------------------------------------------------------------------------------------------------- |
+        | alias             | metric name     | Any string                      | The substitute name to be used in the metric browser instead of metric name.                                   |
+        | statType          | "ave"           | "AVERAGE", "SUM", "MIN", "MAX"  | AWS configured values as returned by API                                                                       |
+        | aggregationType   | "AVERAGE"       | "AVERAGE", "SUM", "OBSERVATION" | [Aggregation qualifier](https://docs.appdynamics.com/display/PRO44/Build+a+Monitoring+Extension+Using+Java)    |
+        | timeRollUpType    | "AVERAGE"       | "AVERAGE", "SUM", "CURRENT"     | [Time roll-up qualifier](https://docs.appdynamics.com/display/PRO44/Build+a+Monitoring+Extension+Using+Java)   |
+        | clusterRollUpType | "INDIVIDUAL"    | "INDIVIDUAL", "COLLECTIVE"      | [Cluster roll-up qualifier](https://docs.appdynamics.com/display/PRO44/Build+a+Monitoring+Extension+Using+Java)|
+        | multiplier        | 1               | Any number                      | Value with which the metric needs to be multiplied.                                                            |
+        | convert           | null            | Any key value map               | Set of key value pairs that indicates the value to which the metrics need to be transformed. eg: UP:0, DOWN:1  |
+        | delta             | false           | true, false                     | If enabled, gives the delta values of metrics instead of actual values.                                        |
+   
+       For example,
+       ```
+       - name: "ConsumedReadCapacityUnits"
+         alias: "Consumed Read Capacity Units"
+         statType: "ave"
+         delta: false
+         multiplier: 1
+         aggregationType: "AVERAGE"
+         timeRollUpType: "AVERAGE"
+         clusterRollUpType: "INDIVIDUAL"
+       ```
+       
+       **All these metric properties are optional, and the default value shown in the table is applied to the metric(if a property has not been specified) by default.**
+       
+8. For several services AWS CloudWatch does not instantly update the metrics but it goes back in time to update that information. 
+   This delay sometimes can take upto 5 minutes. The extension runs every minute(Detailed) or every 5 minutes (Basic) and gets the latest value at that time.
+   There may be a case where the extension may miss the value before CloudWatch updates it. In order to make sure we don't do that, 
+   the extension has the ability to look for metrics during a certain interval, where we already have set it to default at 5 minutes but you can 
+   change it as per your requirements. 
+       ```
+       metricsTimeRange:
+         startTimeInMinsBeforeNow: 10
+         endTimeInMinsBeforeNow: 5
+       ```
+  
+9. This field is set as per the defaults suggested by AWS. You can change this if your limit is different.
+       ```    
+       getMetricStatisticsRateLimit: 400
+       ```
+10. The maximum number of retry attempts for failed requests that can be retried. 
+        ```
+        maxErrorRetrySize: 3
+        ```
+11. CloudWatch can be used in two formats, Basic and Detailed. You can specify how you would like to run the extension by specifying the chosen format here.
+    By default, the extension is set to Basic, which makes the extension run every 5 minutes.
+    Refer https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch-new.html for more information.
+    
+        ```
+        #Allowed values are Basic and Detailed. 
+        # Basic will fire CloudWatch API calls every 5 minutes
+        # Detailed will fire CloudWatch API calls every 1 minutes
+        cloudWatchMonitoring: "Basic"
+        ```
 
-| Section | Fields | Description | Example |
-| ----- | ----- | ----- | ----- |
-| **accounts** | | Fields under this section can be repeated for multiple accounts config |  |
-| | awsAccessKey | AWS Access Key |  |
-| | awsSecretKey | AWS Secret Key |  |
-| | displayAccountName | Display name used in metric path | "MyAWSCustomNamespace" |
-| | regions | Regions where CustomNamespace is registered | **Allowed values:**<br/>"ap-southeast-1",<br/>"ap-southeast-2",<br/>"ap-northeast-1",<br/>"eu-central-1",<br/>"eu-west-1",<br/>"us-east-1",<br/>"us-west-1",<br/>"us-west-2",<br/>"sa-east-1" |
-| | namespaces | The custom namespaces registered for this account that you want to monitor | "MyCustomNamespace1" |
-| **credentialsDecryptionConfig** | ----- | ----- | ----- |
-| | enableDecryption | If set to "true", then all aws credentials provided (access key and secret key) will be decrypted - see AWS Credentials Encryption section |  |
-| | decryptionKey | The key used when encypting the credentials |  |
-| **proxyConfig** | ----- | ----- | ----- |
-| | host | The proxy host (must also specify port) |  |
-| | port | The proxy port (must also specify host) |  |
-| | username | The proxy username (optional)  |  |
-| | password | The proxy password (optional)  |  |
-| **metricsConfig** | ----- | ----- | ----- |
-| metricTypes | | Fields under this section can be repeated for multiple metric types override |  |
-| | metricName | The metric name | "CPUUtilization" |
-| | statType | The statistic type | **Allowed values:**<br/>"ave"<br/>"max"<br/>"min"<br/>"sum"<br/>"samplecount" |
-| | ----- | ----- | ----- |
-| | excludeMetrics | Metrics to exclude - supports regex | "CPUUtilization",<br/>"Swap.*" |
-| metricsTimeRange |  |  |  |
-| | startTimeInMinsBeforeNow | The no of mins to deduct from current time for start time of query | 5 |
-| | endTimeInMinsBeforeNow | The no of mins to deduct from current time for end time of query.<br>Note, this must be less than startTimeInMinsBeforeNow | 0 |
-| | ----- | ----- | ----- |
-| | maxErrorRetrySize | The max number of retry attempts for failed retryable requests | 1 |
-| **concurrencyConfig** |  |  |  |
-| | noOfNamespaceThreads | The no of threads to process multiple namespaces concurrently | 3 |
-| | noOfAccountThreads | The no of threads to process multiple accounts concurrently | 3 |
-| | noOfRegionThreadsPerAccount | The no of threads to process multiple regions per account concurrently | 3 |
-| | noOfMetricThreadsPerRegion | The no of threads to process multiple metrics per region concurrently | 3 |
-| | ----- | ----- | ----- |
-| | metricPrefix | The path prefix for viewing metrics in the metric browser. | "Custom Metrics\|Amazon Custom Namespace\|" |
-
-
-**Below is an example config for monitoring multiple accounts, regions and namespaces:**
-
-~~~
-accounts:
-  - awsAccessKey: "XXXXXXXX1"
-    awsSecretKey: "XXXXXXXXXX1"
-    displayAccountName: "TestAccount_1"
-    regions: ["us-east-1","us-west-1","us-west-2"]
-    namespaces: ["Custom1"]
-
-  - awsAccessKey: "XXXXXXXX2"
-    awsSecretKey: "XXXXXXXXXX2"
-    displayAccountName: "TestAccount_2"
-    regions: ["eu-central-1","eu-west-1"]
-    namespaces: ["Custom2", "Custom3"]
-
-credentialsDecryptionConfig:
-    enableDecryption: "false"
-    decryptionKey:
-
-proxyConfig:
-    host:
-    port:
-    username:
-    password:    
-
-metricsConfig:
-    metricTypes:
-      - metricName: "GroupInServiceInstances"
-        statType: "max"
-
-      - metricName: "GroupMinSize"
-        statType: "sum"        
-
-    excludeMetrics: ["GroupMaxSize", "GroupTotal.*"]
-
-    metricsTimeRange:
-      startTimeInMinsBeforeNow: 5
-      endTimeInMinsBeforeNow: 0
-
-    maxErrorRetrySize: 0
-
-concurrencyConfig:
-  noOfNamespaceThreads: 3
-  noOfAccountThreads: 3
-  noOfRegionThreadsPerAccount: 3
-  noOfMetricThreadsPerRegion: 3
-
-metricPrefix: "Custom Metrics|Amazon Custom Namespace|"
-~~~
-
-### AWS Credentials Encryption
-To set an encrypted awsAccessKey and awsSecretKey in config.yaml, follow the steps below:
-
-1. Download the util jar to encrypt the AWS Credentials from [here](https://github.com/Appdynamics/maven-repo/blob/master/releases/com/appdynamics/appd-exts-commons/1.1.2/appd-exts-commons-1.1.2.jar).
-2. Run command:
-
-   	~~~   
-   	java -cp appd-exts-commons-1.1.2.jar com.appdynamics.extensions.crypto.Encryptor EncryptionKey CredentialToEncrypt
-
-   	For example:
-   	java -cp "appd-exts-commons-1.1.2.jar" com.appdynamics.extensions.crypto.Encryptor test myAwsAccessKey
-
-   	java -cp "appd-exts-commons-1.1.2.jar" com.appdynamics.extensions.crypto.Encryptor test myAwsSecretKey
-   	~~~
-
-3. Set the decryptionKey field in config.yaml with the encryption key used, as well as the resulting encrypted awsAccessKey and awsSecretKey in their respective fields.
+Please avoid using tab (\t) when editing yaml files. Please copy all the contents of the config.yml file and go to [Yaml Validator](http://www.yamllint.com/) . On reaching the website, paste the contents and press the “Go” button on the bottom left.                                                       
+If you get a valid output, that means your formatting is correct and you may move on to the next step.
 
 ## Metrics
-Typical metric path: **Application Infrastructure Performance|\<Tier\>|Custom Metrics|Amazon Custom Namespace|\<Namespace\>|\<Account Name\>|\<Region\>** followed by the metrics defined by your custom namespace.
+Typical metric path: **Application Infrastructure Performance|\<Tier\>|Custom Metrics|Amazon Custom Namespace|\<NameSpace\>|\<Account Name\>|Region|Dimension Name|Dimension Value|** followed by the AWS Namespace configured metrics 
 
+## Credentials Encryption
+Please visit [this page](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-Password-Encryption-with-Extensions/ta-p/29397) to get detailed instructions on encryption. The steps in this document will guide you through the whole process.
+
+## Extensions Workbench
+Workbench is an inbuilt feature provided with each extension in order to assist you to fine tune the extension setup before you actually deploy it on the controller. Please review the following document on [How to use the Extensions WorkBench](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-the-Extensions-WorkBench/ta-p/30130)
+
+## Troubleshooting
+Please look at the [troubleshooting document](https://community.appdynamics.com/t5/Knowledge-Base/How-do-I-troubleshoot-missing-custom-metrics-or-extensions/ta-p/28695) and make sure that everything is followed correctly.
+
+## Support Tickets
+If after going through the [Troubleshooting Document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) you have not been able to get your extension working, please file a ticket and add the following information.
+
+Please provide the following in order for us to assist you better.
+
+1. Stop the running machine agent.
+2. Delete all existing logs under <MachineAgent>/logs.
+3. Please enable debug logging by editing the file <MachineAgent>/conf/logging/log4j.xml. Change the level value of the following <logger> elements to debug.
+   <logger name="com.singularity">
+   <logger name="com.appdynamics">
+4. Start the machine agent and please let it run for 10 mins. Then zip and upload all the logs in the directory <MachineAgent>/logs/*.
+5. Attach the zipped <MachineAgent>/conf/* directory here.
+6. Attach the zipped <MachineAgent>/monitors/ExtensionFolderYouAreHavingIssuesWith directory here.
+   For any support related questions, you can also contact [help@appdynamics.com](mailto:help@appdynamics.com).
+   
 ## Contributing
 
 Always feel free to fork and contribute any changes directly via [GitHub](https://github.com/Appdynamics/aws-customnamespace-monitoring-extension).
@@ -133,6 +167,10 @@ Always feel free to fork and contribute any changes directly via [GitHub](https:
 
 Find out more in the [AppSphere](https://www.appdynamics.com/community/exchange/extension/aws-customnamespace-monitoring-extension) community.
 
-## Support
+## Version
+   |          Name            |  Version   |
+   |--------------------------|------------|
+   |Extension Version         |2.0         |
+   |Last Update               |25th March, 2019 |
 
-For any questions or feature request, please contact [AppDynamics Center of Excellence](mailto:ace-request@appdynamics.com).
+List of changes to this extension can be found [here](https://github.com/Appdynamics/aws-customnamespace-monitoring-extension/blob/master/CHANGELOG.md)

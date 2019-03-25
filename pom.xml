@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.appdynamics.extensions</groupId>
 	<artifactId>aws-customnamespace-monitoring-extension</artifactId>
-	<version>1.0.2</version>
+	<version>2.0.0</version>
 	<name>AWS Custom Namespace Monitoring Extension</name>
 	
 	<properties>
@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>com.appdynamics.extensions</groupId>
 			<artifactId>aws-cloudwatch-exts-commons</artifactId>
-			<version>1.0.6</version>
+			<version>2.0.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -60,8 +60,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -103,6 +103,7 @@
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<Implementation-Title>AWS Custom Namespace Monitor v${project.version} Build Date ${maven.build.timestamp}</Implementation-Title>
+										<Main-Class>com.appdynamics.extensions.workbench.WorkbenchServerLauncher</Main-Class>
 									</manifestEntries>
 								</transformer>
 							</transformers>
@@ -123,8 +124,7 @@
 								<mkdir dir="${target.dir}" />
 								<copy todir="${target.dir}">
 									<fileset dir="src/main/resources/conf" includes="monitor.xml" />
-									<fileset dir="src/main/resources" includes="conf/config.yaml" />
-									<fileset dir="src/main/resources" includes="conf/region-endpoints.yaml" />
+									<fileset dir="src/main/resources/conf" includes="config.yml" />
 									<fileset dir="${project.basedir}" includes="LICENSE.txt"/>
 									<fileset dir="${project.basedir}" includes="NOTICE.txt"/>
 								</copy>
@@ -162,6 +162,28 @@
 				<configuration>
 					<tag>${project.artifactId}-${project.version}</tag>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.appdynamics.maven.plugin</groupId>
+				<artifactId>yaml-validate-maven-plugin</artifactId>
+				<version>1.0</version>
+
+				<configuration>
+					<yamlPath>src/main/resources/conf/config.yml</yamlPath>
+					<yamlPath>src/test/resources/conf/itest-encrypted-config.yml</yamlPath>
+					<yamlPath>src/test/resources/conf/itest-proxy-config.yml</yamlPath>
+					<yamlPath>src/test/resources/conf/test-dynamodb-config.yml</yamlPath>
+					<yamlPath>src/test/resources/conf/test-sqs-config.yml</yamlPath>
+				</configuration>
+
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -9,17 +9,22 @@
 package com.appdynamics.extensions.aws.customnamespace;
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.Metric;
-import com.appdynamics.extensions.aws.config.MetricType;
+import com.amazonaws.services.cloudwatch.model.DimensionFilter;
+import com.appdynamics.extensions.aws.config.Dimension;
+import com.appdynamics.extensions.aws.config.IncludeMetric;
+import com.appdynamics.extensions.aws.dto.AWSMetric;
 import com.appdynamics.extensions.aws.metric.NamespaceMetricStatistics;
 import com.appdynamics.extensions.aws.metric.StatisticType;
 import com.appdynamics.extensions.aws.metric.processors.MetricsProcessor;
 import com.appdynamics.extensions.aws.metric.processors.MetricsProcessorHelper;
+import com.appdynamics.extensions.aws.predicate.MultiDimensionPredicate;
+import com.appdynamics.extensions.metrics.Metric;
+import com.google.common.collect.Lists;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * @author Florencio Sarmiento
@@ -28,31 +33,47 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
 
     private String namespace;
 
-    private List<MetricType> metricTypes;
+    private List<IncludeMetric> includeMetrics;
+    private List<Dimension> dimensions;
 
-    private Pattern excludeMetricsPattern;
-
-    public CustomNamespaceMetricsProcessor(List<MetricType> metricTypes,
-                                           Set<String> excludeMetrics,
+    public CustomNamespaceMetricsProcessor(List<IncludeMetric> includeMetrics, List<Dimension> dimensions,
                                            String namespace) {
-        this.metricTypes = metricTypes;
-        this.excludeMetricsPattern = MetricsProcessorHelper.createPattern(excludeMetrics);
+        this.includeMetrics = includeMetrics;
+        this.dimensions = dimensions;
         this.namespace = namespace;
     }
 
-    public List<Metric> getMetrics(AmazonCloudWatch awsCloudWatch, String accountName) {
-        return MetricsProcessorHelper.getFilteredMetrics(awsCloudWatch,
-                namespace,
-                excludeMetricsPattern);
+    @Override
+    public List<AWSMetric> getMetrics(AmazonCloudWatch amazonCloudWatch, String s, LongAdder awsRequestsCounter) {
+        List<DimensionFilter> dimensionFilters = getDimensionFilters();
+        MultiDimensionPredicate predicate = new MultiDimensionPredicate(dimensions);
+        return MetricsProcessorHelper.getFilteredMetrics(amazonCloudWatch, awsRequestsCounter,
+                namespace, includeMetrics, dimensionFilters, predicate);
     }
 
-    public StatisticType getStatisticType(Metric metric) {
-        return MetricsProcessorHelper.getStatisticType(metric, metricTypes);
+    private List<DimensionFilter> getDimensionFilters() {
+        List<DimensionFilter> dimensionFilters = Lists.newArrayList();
+        for (Dimension dimension : dimensions) {
+            DimensionFilter dbDimensionFilter = new DimensionFilter();
+            dbDimensionFilter.withName(dimension.getName());
+            dimensionFilters.add(dbDimensionFilter);
+        }
+        return dimensionFilters;
     }
 
-    public Map<String, Double> createMetricStatsMapForUpload(NamespaceMetricStatistics namespaceMetricStats) {
+    @Override
+    public StatisticType getStatisticType(AWSMetric awsMetric) {
+        return MetricsProcessorHelper.getStatisticType(awsMetric.getIncludeMetric(), includeMetrics);
+    }
+
+    public List<Metric> createMetricStatsMapForUpload(NamespaceMetricStatistics namespaceMetricStats) {
+        Map<String, String> dimensionToMetricPathNameDictionary = new HashMap<String, String>();
+        for (Dimension dimension : dimensions) {
+            dimensionToMetricPathNameDictionary.put(dimension.getName(), dimension.getDisplayName());
+        }
+
         return MetricsProcessorHelper.createMetricStatsMapForUpload(namespaceMetricStats,
-                null, true);
+                dimensionToMetricPathNameDictionary, true);
     }
 
     public String getNamespace() {
