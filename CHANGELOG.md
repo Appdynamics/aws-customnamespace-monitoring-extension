@@ -1,3 +1,6 @@
+## 2.0.3 - May 20, 2022
+1. Fixed issue for getStatisticType
+
 ## 2.0.2 - Apr 05, 2021
 1. Updated extension to aws-cloudwatch-exts-commons 2.2.5
 

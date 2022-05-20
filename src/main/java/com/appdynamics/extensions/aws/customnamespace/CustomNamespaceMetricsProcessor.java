@@ -35,7 +35,7 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
     private List<Dimension> dimensions;
     private String namespace;
 
-    private List<IncludeMetric> accountIncludeMetrics = Lists.newArrayList();
+    //private List<IncludeMetric> accountIncludeMetrics = Lists.newArrayList();
 
     public CustomNamespaceMetricsProcessor(List<IncludeMetric> includeMetrics, List<Dimension> dimensions, String namespace) {
         this.includeMetrics = includeMetrics;
@@ -53,7 +53,7 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
 
     @Override
     public synchronized StatisticType getStatisticType(AWSMetric awsMetric) {
-        return MetricsProcessorHelper.getStatisticType(awsMetric.getIncludeMetric(), accountIncludeMetrics);
+        return MetricsProcessorHelper.getStatisticType(awsMetric.getIncludeMetric(), includeMetrics);
     }
 
     private List<DimensionFilter> getDimensionFilters() {
