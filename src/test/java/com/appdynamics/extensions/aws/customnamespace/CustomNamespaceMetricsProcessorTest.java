@@ -29,6 +29,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.LongAdder;
@@ -113,8 +114,10 @@ public class CustomNamespaceMetricsProcessorTest {
         includeMetric.setStatType("ave");
         AWSMetric awsMetric = new AWSMetric();
         awsMetric.setIncludeMetric(includeMetric);
+        List<IncludeMetric> includeMetricList = new ArrayList<>();
+        includeMetricList.add(includeMetric);
         PowerMockito.mockStatic(MetricsProcessorHelper.class);
-        when(MetricsProcessorHelper.getStatisticType(awsMetric.getIncludeMetric(), Arrays.asList())).thenReturn(StatisticType.AVE);
+        when(MetricsProcessorHelper.getStatisticType(awsMetric.getIncludeMetric(), includeMetricList)).thenReturn(StatisticType.AVE);
         CustomNamespaceMetricsProcessor processor = new CustomNamespaceMetricsProcessor(Arrays.asList(includeMetric), dimensions, "AWS/EC2");
         StatisticType statisticType = processor.getStatisticType(awsMetric);
         Assert.assertEquals(statisticType.getTypeName(), "Average");
