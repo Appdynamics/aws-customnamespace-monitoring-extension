@@ -10,6 +10,7 @@ namespace: "AWS/EFS"
 accounts:
   - awsAccessKey: ""
     awsSecretKey: ""
+    awsSessionToken: """
     displayAccountName: ""
     regions: ["eu-central-1"]
 

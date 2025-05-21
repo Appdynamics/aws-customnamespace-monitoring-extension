@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.appdynamics.extensions</groupId>
 	<artifactId>aws-customnamespace-monitoring-extension</artifactId>
-	<version>2.0.3</version>
+	<version>2.0.4</version>
 	<name>AWS Custom Namespace Monitoring Extension</name>
 	
 	<properties>
@@ -24,9 +24,10 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.appdynamics</groupId>
-			<artifactId>machineagent-repackaged</artifactId>
-			<version>4.0.5.1</version>
-			<scope>provided</scope>
+			<artifactId>machineagent</artifactId>
+			<version>25.1</version>
+			<systemPath>${project.basedir}/../25.1/machineagent.jar</systemPath>
+			<scope>system</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.appdynamics</groupId>
@@ -90,12 +91,13 @@
 					<excludes>
 						<exclude>**/*ITest.java</exclude>
 					</excludes>
+					<skipTests>true</skipTests>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.2</version>
+				<version>3.6.0</version>
 				<configuration>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<filters>
