@@ -1,8 +1,6 @@
 package com.appdynamics.extensions.aws.customnamespace;
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.DimensionFilter;
-import com.amazonaws.services.cloudwatch.model.Metric;
+
 import com.appdynamics.extensions.aws.config.Dimension;
 import com.appdynamics.extensions.aws.config.IncludeMetric;
 import com.appdynamics.extensions.aws.config.MetricsConfig;
@@ -26,6 +24,9 @@ import org.powermock.api.mockito.PowerMockito;
 import static org.powermock.api.mockito.PowerMockito.when;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.DimensionFilter;
+import software.amazon.awssdk.services.cloudwatch.model.Metric;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -45,7 +46,7 @@ import java.util.concurrent.atomic.LongAdder;
 public class CustomNamespaceMetricsProcessorTest {
 
     @Mock
-    AmazonCloudWatch awsCloudWatch;
+    CloudWatchClient awsCloudWatch;
     @Mock
     CustomNamespaceConfiguration config;
     @Mock
@@ -77,8 +78,7 @@ public class CustomNamespaceMetricsProcessorTest {
 //        when(config.getAwsAccounts()).thenReturn(Arrays.asList(awsAccount));
 
         for (Dimension dimension1 : dimensions) {
-            DimensionFilter dimensionFilter = new DimensionFilter();
-            dimensionFilter.withName(dimension1.getName());
+            DimensionFilter dimensionFilter = DimensionFilter.builder().name(dimension1.getName()).build();
             dimensionFilters.add(dimensionFilter);
         }
     }

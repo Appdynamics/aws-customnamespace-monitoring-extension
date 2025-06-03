@@ -8,8 +8,6 @@
 
 package com.appdynamics.extensions.aws.customnamespace;
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.DimensionFilter;
 import com.appdynamics.extensions.aws.config.Dimension;
 import com.appdynamics.extensions.aws.config.IncludeMetric;
 import com.appdynamics.extensions.aws.dto.AWSMetric;
@@ -18,8 +16,10 @@ import com.appdynamics.extensions.aws.metric.StatisticType;
 import com.appdynamics.extensions.aws.metric.processors.MetricsProcessor;
 import com.appdynamics.extensions.aws.metric.processors.MetricsProcessorHelper;
 import com.appdynamics.extensions.aws.predicate.MultiDimensionPredicate;
-import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.DimensionFilter;
+import com.appdynamics.extensions.metrics.Metric;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +44,7 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
     }
 
     @Override
-    public synchronized List<AWSMetric> getMetrics(AmazonCloudWatch awsCloudWatch, String accountName, LongAdder awsRequestsCounter) {
+    public synchronized List<AWSMetric> getMetrics(CloudWatchClient awsCloudWatch, String accountName, LongAdder awsRequestsCounter) {
         List<DimensionFilter> dimensionFilters = getDimensionFilters();
         MultiDimensionPredicate predicate = new MultiDimensionPredicate(dimensions);
         return MetricsProcessorHelper.getFilteredMetrics(awsCloudWatch, awsRequestsCounter,
@@ -59,8 +59,7 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
     private List<DimensionFilter> getDimensionFilters() {
         List<DimensionFilter> dimensionFilters = Lists.newArrayList();
         for (Dimension dimension : dimensions) {
-            DimensionFilter dimensionFilter = new DimensionFilter();
-            dimensionFilter.withName(dimension.getName());
+            DimensionFilter dimensionFilter = DimensionFilter.builder().name(dimension.getName()).build();
             dimensionFilters.add(dimensionFilter);
         }
         return dimensionFilters;
