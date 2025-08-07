@@ -1,3 +1,7 @@
+## 2.0.5 - Aug 07, 2025
+1. Updated ext to be compatible with Java 17
+2. Updated appd-ext-commons to 2.2.16 having apache commons-lang3 3.18.0
+
 ## 2.0.3 - May 20, 2022
 1. Fixed issue for getStatisticType
 
