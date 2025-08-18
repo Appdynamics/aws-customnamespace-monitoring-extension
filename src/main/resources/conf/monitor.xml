@@ -25,7 +25,8 @@
 		</task-arguments>
             
         <java-task>
-            <classpath>aws-customnamespace-monitoring-extension.jar</classpath>
+            <classpath>aws-customnamespace-monitoring-extension.jar:aws-cloudwatch-exts-commons-2.2.7.jar:lib</classpath>
+    <load-jars-in-classpath-dirs>true</load-jars-in-classpath-dirs>
             <impl-class>com.appdynamics.extensions.aws.customnamespace.CustomNamespaceMonitor</impl-class>
         </java-task>
         

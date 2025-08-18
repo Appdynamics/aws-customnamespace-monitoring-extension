@@ -3,16 +3,16 @@
 
 #This will create it in specific Tier/Component. Make sure to replace <COMPONENT_ID> with the appropriate one from your environment.
 #To find the <COMPONENT_ID> in your environment, please follow the screenshot https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
-metricPrefix: "Server|Component:<COMPONENT_ID>|Custom Metrics|AWS Custom Namespace|"
+metricPrefix: "Server|Component:dev-node123|Custom Metrics|AWS Custom Namespace|"
 
-namespace: "AWS/EFS"
+namespace: "AWS/EC2"
 
 accounts:
   - awsAccessKey: ""
     awsSecretKey: ""
-    awsSessionToken: """
+    awsSessionToken: ""
     displayAccountName: ""
-    regions: ["eu-central-1"]
+    regions: ["ap-south-1"]
 
 
 credentialsDecryptionConfig:
@@ -28,9 +28,9 @@ proxyConfig:
 # Filters based on dimensions, values accepts comma separated values and regex patterns. If `.*` is used, all are
 # monitored and if empty, none are monitored.
 dimensions:
-  - name: "FileSystemId"
-    displayName: "File System Id"
-    values: ["fs-fcac.*"]
+  - name: "InstanceId"
+    displayName: "Instance Id"
+    values: ["i-0511b40bd2430a659"]
 
 # Global metrics config for all accounts
 metricsConfig:
@@ -41,56 +41,56 @@ metricsConfig:
     # Observed value to the Controller
 
    includeMetrics:
-     - name: "BurstCreditBalance"
-       alias: "BurstCreditBalance"
-       statType: "sum"
-       aggregationType: "AVERAGE"
-       timeRollUpType: "AVERAGE"
-       clusterRollUpType: "INDIVIDUAL"
-       delta: false
-       multiplier: 1
-     - name: "ClientConnections"
-       alias: "ClientConnections"
+     - name: "CPUUtilization"
+       alias: "CPUUtilization"
        statType: "ave"
        aggregationType: "AVERAGE"
        timeRollUpType: "AVERAGE"
        clusterRollUpType: "INDIVIDUAL"
        delta: false
        multiplier: 1
-     - name: "DataReadIOBytes"
-       alias: "DataReadIOBytes"
+     - name: "NetworkIn"
+       alias: "NetworkIn"
        statType: "ave"
        aggregationType: "AVERAGE"
        timeRollUpType: "AVERAGE"
        clusterRollUpType: "INDIVIDUAL"
        delta: false
        multiplier: 1
-     - name: "MetadataIOBytes"
-       alias: "MetadataIOBytes"
+     - name: "NetworkOut"
+       alias: "NetworkOut"
        statType: "ave"
        aggregationType: "AVERAGE"
        timeRollUpType: "AVERAGE"
        clusterRollUpType: "INDIVIDUAL"
        delta: false
        multiplier: 1
-     - name: "PercentIOLimit"
-       alias: "PercentIOLimit"
+     - name: "DiskReadOps"
+       alias: "DiskReadOps"
        statType: "ave"
        aggregationType: "AVERAGE"
        timeRollUpType: "AVERAGE"
        clusterRollUpType: "INDIVIDUAL"
        delta: false
        multiplier: 1
-     - name: "PermittedThroughput"
-       alias: "PermittedThroughput"
+     - name: "DiskWriteOps"
+       alias: "DiskWriteOps"
        statType: "ave"
        aggregationType: "AVERAGE"
        timeRollUpType: "AVERAGE"
        clusterRollUpType: "INDIVIDUAL"
        delta: false
        multiplier: 1
-     - name: "TotalIOBytes"
-       alias: "TotalIOBytes"
+     - name: "DiskReadBytes"
+       alias: "DiskReadBytes"
+       statType: "ave"
+       aggregationType: "AVERAGE"
+       timeRollUpType: "AVERAGE"
+       clusterRollUpType: "INDIVIDUAL"
+       delta: false
+       multiplier: 1
+     - name: "DiskWriteBytes"
+       alias: "DiskWriteBytes"
        statType: "ave"
        aggregationType: "AVERAGE"
        timeRollUpType: "AVERAGE"
