@@ -23,12 +23,11 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.appdynamics</groupId>
-			<artifactId>machineagent</artifactId>
-			<version>25.7</version>
-			<systemPath>${project.basedir}/../25.7/machineagent.jar</systemPath>
-			<scope>system</scope>
-		</dependency>
+            <groupId>com.appdynamics</groupId>
+            <artifactId>machine-agent</artifactId>
+            <version>3.7.11</version>
+            <scope>provided</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.appdynamics</groupId>
 			<artifactId>appd-exts-commons</artifactId>
@@ -85,7 +84,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.14.0</version>
 				<configuration>
 					<source>17</source>
 					<target>17</target>
@@ -94,7 +93,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.18</version>
+				<version>3.1.2</version>
 				<configuration>
 					<excludes>
 						<exclude>**/*ITest.java</exclude>

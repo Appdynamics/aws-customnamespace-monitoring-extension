@@ -26,7 +26,6 @@
             
         <java-task>
             <classpath>aws-customnamespace-monitoring-extension.jar</classpath>
-            <load-jars-in-classpath-dirs>true</load-jars-in-classpath-dirs>
             <impl-class>com.appdynamics.extensions.aws.customnamespace.CustomNamespaceMonitor</impl-class>
         </java-task>
         
