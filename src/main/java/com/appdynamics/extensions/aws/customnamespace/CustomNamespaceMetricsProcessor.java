@@ -46,32 +46,32 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
         this.dimensions = dimensions;
         this.namespace = namespace;
         
-        LOGGER.info("Initialized CustomNamespaceMetricsProcessor for namespace: {} with {} include metrics and {} dimensions", 
+        LOGGER.debug("Initialized CustomNamespaceMetricsProcessor for namespace: {} with {} include metrics and {} dimensions", 
                 namespace, includeMetrics.size(), dimensions.size());
         
-        LOGGER.info("Include metrics: {}", 
+        LOGGER.debug("Include metrics: {}", 
                     includeMetrics.stream().map(IncludeMetric::getName).toArray());
-        LOGGER.info("Dimensions: {}", 
+        LOGGER.debug("Dimensions: {}", 
                 dimensions.stream().map(d -> d.getName() + " (" + d.getDisplayName() + ")").toArray());
         
     }
 
     @Override
     public synchronized List<AWSMetric> getMetrics(CloudWatchClient awsCloudWatch, String accountName, LongAdder awsRequestsCounter) {
-        LOGGER.info("Starting metric collection for account: {} in namespace: {}", accountName, namespace);
+        LOGGER.debug("Starting metric collection for account: {} in namespace: {}", accountName, namespace);
         
         List<DimensionFilter> dimensionFilters = getDimensionFilters();
-        LOGGER.info("Created {} dimension filters: {}", dimensionFilters.size(), 
+        LOGGER.debug("Created {} dimension filters: {}", dimensionFilters.size(), 
                 dimensionFilters.stream().map(df -> df.name()).toArray());
         
         MultiDimensionPredicate predicate = new MultiDimensionPredicate(dimensions);
         List<AWSMetric> metrics = MetricsProcessorHelper.getFilteredMetrics(awsCloudWatch, awsRequestsCounter,
                 namespace, includeMetrics, dimensionFilters, predicate);
         
-        LOGGER.info("Collected {} metrics for account: {} in namespace: {}", metrics.size(), accountName, namespace);
+        LOGGER.debug("Collected {} metrics for account: {} in namespace: {}", metrics.size(), accountName, namespace);
         
         for (AWSMetric awsMetric : metrics) {
-            LOGGER.info("Collected metric: {}", awsMetric.toString());
+            LOGGER.debug("Collected metric: {}", awsMetric.toString());
         }
         
         
@@ -93,7 +93,7 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
     }
 
     public List<Metric> createMetricStatsMapForUpload(NamespaceMetricStatistics namespaceMetricStats) {
-        LOGGER.info("Creating metric stats map for upload from namespace: {}", namespace);
+        LOGGER.debug("Creating metric stats map for upload from namespace: {}", namespace);
         
         Map<String, String> dimensionToMetricPathNameDictionary = new HashMap<String, String>();
         for (Dimension dimension : dimensions) {
@@ -106,7 +106,7 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
         LOGGER.info("Created {} metrics for upload to AppDynamics Controller", metrics.size());
         
         for (Metric metric : metrics) {
-            LOGGER.info("Uploading metric: {} = {} ({})", 
+            LOGGER.debug("Uploading metric: {} = {} ({})", 
                     metric.getMetricPath(), 
                     metric.getMetricValue(), 
                     metric.getAggregationType());
