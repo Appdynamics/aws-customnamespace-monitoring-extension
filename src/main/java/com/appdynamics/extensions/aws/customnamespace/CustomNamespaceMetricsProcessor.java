@@ -16,10 +16,12 @@ import com.appdynamics.extensions.aws.metric.StatisticType;
 import com.appdynamics.extensions.aws.metric.processors.MetricsProcessor;
 import com.appdynamics.extensions.aws.metric.processors.MetricsProcessorHelper;
 import com.appdynamics.extensions.aws.predicate.MultiDimensionPredicate;
+import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.google.common.collect.Lists;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.DimensionFilter;
 import com.appdynamics.extensions.metrics.Metric;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +33,8 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
 
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(CustomNamespaceMetricsProcessor.class);
+
     private List<IncludeMetric> includeMetrics;
     private List<Dimension> dimensions;
     private String namespace;
@@ -41,14 +45,37 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
         this.includeMetrics = includeMetrics;
         this.dimensions = dimensions;
         this.namespace = namespace;
+        
+        LOGGER.debug("Initialized CustomNamespaceMetricsProcessor for namespace: {} with {} include metrics and {} dimensions", 
+                namespace, includeMetrics.size(), dimensions.size());
+        
+        LOGGER.debug("Include metrics: {}", 
+                    includeMetrics.stream().map(IncludeMetric::getName).toArray());
+        LOGGER.debug("Dimensions: {}", 
+                dimensions.stream().map(d -> d.getName() + " (" + d.getDisplayName() + ")").toArray());
+        
     }
 
     @Override
     public synchronized List<AWSMetric> getMetrics(CloudWatchClient awsCloudWatch, String accountName, LongAdder awsRequestsCounter) {
+        LOGGER.debug("Starting metric collection for account: {} in namespace: {}", accountName, namespace);
+        
         List<DimensionFilter> dimensionFilters = getDimensionFilters();
+        LOGGER.debug("Created {} dimension filters: {}", dimensionFilters.size(), 
+                dimensionFilters.stream().map(df -> df.name()).toArray());
+        
         MultiDimensionPredicate predicate = new MultiDimensionPredicate(dimensions);
-        return MetricsProcessorHelper.getFilteredMetrics(awsCloudWatch, awsRequestsCounter,
+        List<AWSMetric> metrics = MetricsProcessorHelper.getFilteredMetrics(awsCloudWatch, awsRequestsCounter,
                 namespace, includeMetrics, dimensionFilters, predicate);
+        
+        LOGGER.debug("Collected {} metrics for account: {} in namespace: {}", metrics.size(), accountName, namespace);
+        
+        for (AWSMetric awsMetric : metrics) {
+            LOGGER.debug("Collected metric: {}", awsMetric.toString());
+        }
+        
+        
+        return metrics;
     }
 
     @Override
@@ -66,13 +93,26 @@ public class CustomNamespaceMetricsProcessor implements MetricsProcessor {
     }
 
     public List<Metric> createMetricStatsMapForUpload(NamespaceMetricStatistics namespaceMetricStats) {
+        LOGGER.debug("Creating metric stats map for upload from namespace: {}", namespace);
+        
         Map<String, String> dimensionToMetricPathNameDictionary = new HashMap<String, String>();
         for (Dimension dimension : dimensions) {
             dimensionToMetricPathNameDictionary.put(dimension.getName(), dimension.getDisplayName());
         }
 
-        return MetricsProcessorHelper.createMetricStatsMapForUpload(namespaceMetricStats,
+        List<Metric> metrics = MetricsProcessorHelper.createMetricStatsMapForUpload(namespaceMetricStats,
                 dimensionToMetricPathNameDictionary, true);
+        
+        LOGGER.info("Created {} metrics for upload to AppDynamics Controller", metrics.size());
+        
+        for (Metric metric : metrics) {
+            LOGGER.debug("Uploading metric: {} = {} ({})", 
+                    metric.getMetricPath(), 
+                    metric.getMetricValue(), 
+                    metric.getAggregationType());
+        }
+        
+        return metrics;
     }
 
     @Override

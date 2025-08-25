@@ -121,16 +121,40 @@ For example,
          startTimeInMinsBeforeNow: 10
          endTimeInMinsBeforeNow: 5
 ```
-  
-9. This field is set as per the defaults suggested by AWS. You can change this if your limit is different.
+
+9. Configure the default period for metrics collection and individual metric periods.
+   
+   The `defaultPeriod` field sets the default time period (in seconds) for all metrics retrieved from CloudWatch. This value must be a multiple of 60 seconds. Common values include 60 (1 minute), 300 (5 minutes), or 3600 (1 hour). Individual metrics can override this default by specifying their own `period` field within the metric configuration.
+   
+   ```
+   # Default period for all metrics (in seconds). Must be a multiple of 60.
+   # Valid values: 60, 300, 3600, etc.
+   defaultPeriod: 300
+   ```
+   
+   For individual metrics, you can override the default period by adding a `period` field to the specific metric configuration:
+   
+   ```
+   - name: "ConsumedReadCapacityUnits"
+     alias: "Consumed Read Capacity Units"
+     statType: "ave"
+     period: 60  # Override default period for this specific metric
+     delta: false
+     multiplier: 1
+     aggregationType: "AVERAGE"
+     timeRollUpType: "AVERAGE"
+     clusterRollUpType: "INDIVIDUAL"
+   ```
+   
+10. This field is set as per the defaults suggested by AWS. You can change this if your limit is different.
  ```    
        getMetricStatisticsRateLimit: 400
 ```
-10. The maximum number of retry attempts for failed requests that can be retried. 
+11. The maximum number of retry attempts for failed requests that can be retried. 
 ```
         maxErrorRetrySize: 3
 ```
-11. CloudWatch can be used in two formats, Basic and Detailed. You can specify how you would like to run the extension by specifying the chosen format here.
+12. CloudWatch can be used in two formats, Basic and Detailed. You can specify how you would like to run the extension by specifying the chosen format here.
     By default, the extension is set to Basic, which makes the extension run every 5 minutes.
     Refer https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch-new.html for more information.
     
