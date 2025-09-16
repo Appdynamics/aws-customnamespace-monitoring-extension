@@ -21,6 +21,17 @@
 		<skipITs>true</skipITs>
 	</properties>
 
+	<dependencyManagement>
+        <dependencies>
+            <!-- Force latest Jakarta Servlet API version -->
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>6.1.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 	<dependencies>
 		<dependency>
             <groupId>com.appdynamics</groupId>
@@ -41,7 +52,7 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>cloudwatch</artifactId>
-			<version>2.31.12</version>
+			<version>2.32.30</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

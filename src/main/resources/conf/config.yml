@@ -111,8 +111,8 @@ metricsConfig:
     #
    maxErrorRetrySize: 0
    # Default period for all metrics (in seconds). Must be a multiple of 60.
-    # Valid values: 60, 300, 3600, etc.
-    # Individual metrics can override this value using the 'period' field in the specific includeMetrics section
+   # Valid values: 60, 300, 3600, etc.
+   # Individual metrics can override this value using the 'period' field in the specific includeMetrics section
    defaultPeriod: 300
 
 #Allowed values are Basic and Detailed. Refer https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch-new.html for more information
