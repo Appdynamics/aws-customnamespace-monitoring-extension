@@ -1,3 +1,7 @@
+## 2.0.7 - Nov 05, 2025
+* Upgraded version of aws exts commons by @cold-magma in https://github.com/Appdynamics/aws-customnamespace-monitoring-extension/pull/15
+* Upgraded aws cloudwatch to 2.33.5 by @cold-magma 
+
 ## 2.0.6 - Aug 26, 2025
 1. Upgraded aws-cloudwatch-exts-commons to 2.2.8. Added support for configuring period for cloudwatch metrics.
 
