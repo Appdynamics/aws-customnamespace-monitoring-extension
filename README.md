@@ -81,6 +81,8 @@ More details around metric prefix can be found [here](https://community.appdynam
     ```
    name is the dimension name and values are comma separated values of the dimension. displayName is the name with which it appears on the AppDynamics Metric Browser.
    If these fields are left empty, none of your instances will be monitored. In order to monitor everything under a dimension, you can simply use ".*" to pull everything from your AWS Environment.
+
+   NOTE: When you pass multiple dimension filters, AWS CloudWatch performs an "AND" operation (not an "OR" operation) between the dimensions. This means all specified dimension criteria must be met for a metric to be included in the results. 
    
 7. Configure the metrics section.
    
